@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace MovieApp.Client
 {
     public class Program
-    {
+    { 
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
