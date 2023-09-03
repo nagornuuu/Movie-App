@@ -1,0 +1,84 @@
+﻿@page "/movie-form/{Id:int?}"
+@using Microsoft.AspNetCore.Authorization
+@using MovieApp.Shared.DTOs
+@attribute [Authorize]
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+<h3>AddMovie</h3>
+
+<EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <InputText @bind-Value="_model.Title" type="text" class="form-control" id="title" name="title" placeholder="Put the name of a movie here" />
+        <ValidationMessage For="@(() => _model.Title)" />
+    </div>
+
+    <div class="form-group">
+        <label for="summary">Summary</label>
+        <InputText @bind-Value="_model.Summary" class="form-control" name="summary" id="summary" placeholder="Tell something about a movie" />
+    </div>
+
+    <div class="form-group">
+        <label for="in_theaters">In theaters</label>
+        <InputCheckbox @bind-Value="_model.InTheaters" type="checkbox" class="form-control" name="In cinema" id="In cinema" />
+    </div>
+
+    <div class="form-group">
+        <label for="trailer">Trailer</label>
+        <InputText @bind-Value="_model.Trailer" type="text" class="form-control" id="trailer" name="trailer" placeholder="put the path to the trailer" />
+    </div>
+
+    <div class="form-group">
+        <label for="releaseDate">Release date</label>
+        <InputDate @bind-Value="_model.ReleaseDate" class="form-control" name="releaseDate" id="releaseDate" TValue="DateTime" />
+        <ValidationMessage For="@(() => _model.ReleaseDate)" />
+    </div>
+
+    <div class="form-group">
+        <label for="poster">Poster</label>
+        <InputText @bind-Value="_model.Poster" type="text" class="form-control" name="poster" id="poster" placeholder="put the path to your poster here" />
+    </div>
+
+    <button class="btn btn-primary">
+        @if (Id.HasValue)
+        {
+            <span>Update</span>
+        }
+        else
+        {
+            <span>Create</span>
+        }
+    </button>
+</EditForm>
+@code {
+    private MovieFormDTO _model = new();
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            _model = await HttpClient.GetFromJsonAsync<MovieFormDTO>($"api/movies/{Id}");
+        }
+        else
+        {
+            Console.WriteLine("No id, creating new movie");
+        }
+    }
+
+    private void OnValidSubmit()
+    {
+        if (Id.HasValue)
+        {
+            HttpClient.PutAsJsonAsync($"api/movies/{Id}", _model);
+        }
+        else
+        {
+            HttpClient.PostAsJsonAsync("api/movies", _model);
+        }
+
+        NavigationManager.NavigateTo("/movies");
+    }
+}

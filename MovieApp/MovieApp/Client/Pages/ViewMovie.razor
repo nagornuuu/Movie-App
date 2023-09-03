@@ -1,0 +1,62 @@
+﻿@page "/movie/{id:int}/view"
+@using Microsoft.AspNetCore.Authorization
+@using System.Text.Json
+@attribute [Authorize]
+@inject HttpClient httpClient
+<h3>ViewMovie</h3>
+
+@if (_movie != null)
+{
+    <img src="@_movie.Poster" alt="Poster" class="movie-poster" />
+    <h4>@_movie.Title</h4>
+    <h5>@_movie.Summary</h5>
+    @if (_movie.InTheaters)
+    {
+        <h5>In Theaters</h5>
+    }
+    else
+    {
+        <h5>Coming Soon</h5>
+    }
+    <a href="@_movie.Trailer">Trailer</a>
+    <h5>@_movie.ReleaseDate</h5>
+    <ul>
+        @foreach (var genre in _movie.MoviesGenres)
+        {
+            <li>@genre</li>
+        }
+    </ul>
+    <ul>
+        @foreach (var actor in _movie.MoviesActors)
+        {
+            <li>@actor</li>
+        }
+    </ul>
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Movie _movie;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMovie();
+    }
+
+    private async Task GetMovie()
+    {
+        var response = await httpClient.GetAsync($"api/movies/{Id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseString = await response.Content.ReadAsStringAsync();
+            _movie = JsonSerializer.Deserialize<Movie>(responseString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+    }
+}
